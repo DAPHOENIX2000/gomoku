@@ -132,9 +132,103 @@
     text-align:center;transition:opacity .3s;
   }
   .footer{font-size:10px;letter-spacing:.15em;color:var(--gold);opacity:.4;text-transform:uppercase;}
-  .reset-btn{background:transparent;border:1px solid rgba(200,155,60,.4);color:var(--gold);padding:9px 18px;}
-  .reset-btn:hover{filter:none;background:rgba(200,155,60,.12);}
   .hidden{display:none !important;}
+
+  /* ---- required-field shake ---- */
+  input.invalid{border-color:var(--accent);animation:shake .4s;}
+  @keyframes shake{
+    10%,90%{transform:translateX(-2px);}
+    20%,80%{transform:translateX(4px);}
+    30%,50%,70%{transform:translateX(-7px);}
+    40%,60%{transform:translateX(7px);}
+  }
+
+  /* ---- animated turn banner ---- */
+  .turn-banner{
+    width:100%;text-align:center;font-family:'Cormorant Garamond',serif;
+    font-size:22px;font-style:italic;letter-spacing:.02em;
+    padding:10px 0;border-radius:3px;position:relative;overflow:hidden;
+    transition:color .3s, background .3s;
+    border:1px solid transparent;
+  }
+  .turn-banner .label{position:relative;z-index:2;display:inline-block;}
+  .turn-banner.swap .label{animation:turnSwap .45s cubic-bezier(.22,1,.36,1);}
+  @keyframes turnSwap{
+    0%{opacity:0;transform:translateY(10px) scale(.96);}
+    100%{opacity:1;transform:translateY(0) scale(1);}
+  }
+  /* your turn: gold, breathing glow + sweeping shimmer */
+  .turn-banner.mine{
+    color:#1a1410;background:linear-gradient(90deg,#e8c45a,#c89b3c);
+    border-color:rgba(200,155,60,.6);
+    animation:breathe 2.2s ease-in-out infinite;
+  }
+  .turn-banner.mine::before{
+    content:'';position:absolute;inset:0;z-index:1;
+    background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);
+    transform:translateX(-120%);animation:sweep 2.6s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{box-shadow:0 0 0 rgba(200,155,60,0);}50%{box-shadow:0 0 22px rgba(200,155,60,.65);}}
+  @keyframes sweep{0%{transform:translateX(-120%);}55%,100%{transform:translateX(220%);}}
+  /* opponent's turn: muted, quiet pulse on the dots */
+  .turn-banner.theirs{
+    color:var(--paper);background:rgba(20,14,9,.5);
+    border-color:rgba(200,155,60,.18);opacity:.85;
+  }
+  .turn-banner.theirs .dots::after{
+    content:'';animation:dots 1.4s steps(4,end) infinite;
+  }
+  @keyframes dots{0%{content:'';}25%{content:'.';}50%{content:'..';}75%{content:'...';}}
+
+  /* ---- end-of-game overlay ---- */
+  .overlay{
+    position:fixed;inset:0;z-index:200;display:flex;align-items:center;
+    justify-content:center;background:rgba(10,7,4,0);
+    backdrop-filter:blur(0px);transition:background .5s,backdrop-filter .5s;
+    pointer-events:none;
+  }
+  .overlay.show{background:rgba(10,7,4,.72);backdrop-filter:blur(3px);pointer-events:auto;}
+  .verdict{
+    text-align:center;transform:scale(.7);opacity:0;
+    transition:transform .55s cubic-bezier(.22,1.4,.4,1),opacity .4s;
+  }
+  .overlay.show .verdict{transform:scale(1);opacity:1;}
+  .verdict .big{
+    font-family:'Cormorant Garamond',serif;font-weight:700;
+    font-size:clamp(54px,15vw,108px);line-height:.9;display:block;
+  }
+  .verdict .sub{
+    font-size:13px;letter-spacing:.32em;text-transform:uppercase;
+    margin-top:14px;opacity:.85;
+  }
+  .verdict.win .big{
+    color:var(--gold);
+    text-shadow:0 0 30px rgba(200,155,60,.7);
+    animation:victoryPop .7s cubic-bezier(.22,1.4,.4,1), shimmerText 2.6s ease-in-out .7s infinite;
+    background:linear-gradient(90deg,#c89b3c,#f4e3a0,#c89b3c);
+    -webkit-background-clip:text;background-clip:text;
+  }
+  .verdict.lose .big{color:#8a7a66;text-shadow:0 6px 24px rgba(0,0,0,.6);animation:loseFade .9s ease-out;}
+  .verdict.draw .big{color:var(--paper);animation:victoryPop .6s ease-out;}
+  @keyframes victoryPop{0%{transform:scale(.3) rotate(-6deg);}60%{transform:scale(1.12) rotate(2deg);}100%{transform:scale(1) rotate(0);}}
+  @keyframes loseFade{0%{transform:translateY(-22px);opacity:0;letter-spacing:.2em;}100%{transform:translateY(0);opacity:1;letter-spacing:0;}}
+  @keyframes shimmerText{0%,100%{filter:brightness(1);}50%{filter:brightness(1.25);}}
+  .verdict .again{
+    margin-top:26px;background:var(--accent);color:#f4eee2;border:none;
+    padding:13px 30px;border-radius:3px;cursor:pointer;font-family:'Spline Sans Mono',monospace;
+    font-weight:600;letter-spacing:.18em;text-transform:uppercase;font-size:12px;
+    transition:transform .12s,filter .2s;
+  }
+  .verdict .again:hover{filter:brightness(1.12);}
+  .verdict .again:active{transform:translateY(1px);}
+
+  /* confetti pieces */
+  .confetti{position:fixed;top:-12px;width:9px;height:14px;z-index:201;pointer-events:none;opacity:0;}
+  .confetti.go{animation:fall var(--dur) linear forwards;}
+  @keyframes fall{
+    0%{opacity:1;transform:translateY(-20px) rotate(0);}
+    100%{opacity:1;transform:translateY(102vh) rotate(720deg);opacity:.9;}
+  }
 </style>
 </head>
 <body>
@@ -148,8 +242,8 @@
   <!-- Join panel -->
   <div class="panel" id="joinPanel">
     <div>
-      <label for="nameInput">Your name</label>
-      <input id="nameInput" type="text" maxlength="16" placeholder="Enter a name…" autocomplete="off">
+      <label for="nameInput">Your name <span style="color:var(--accent)">*</span></label>
+      <input id="nameInput" type="text" maxlength="16" placeholder="Enter a name…" autocomplete="off" required>
     </div>
     <div>
       <label for="serverInput">Server address</label>
@@ -160,7 +254,7 @@
   </div>
 
   <!-- Game view -->
-  <div class="game hidden" id="gameView" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:18px;">
+  <div class="game hidden" id="gameView" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;">
     <div class="status">
       <div class="players">
         <span class="pill" id="pillBlack"><span class="dot black"></span><span id="nameBlack">—</span></span>
@@ -168,14 +262,23 @@
       </div>
       <div class="result" id="result"></div>
     </div>
+    <div class="turn-banner" id="turnBanner"><span class="label">Connecting…</span></div>
     <div class="board-frame">
       <div class="board" id="board"></div>
     </div>
     <div class="toast" id="gameToast"></div>
-    <button class="reset-btn hidden" id="resetBtn">Play again</button>
   </div>
 
   <div class="footer">Stream-socket relay · server-judged · concurrent matches</div>
+</div>
+
+<!-- End-of-game overlay -->
+<div class="overlay" id="overlay">
+  <div class="verdict" id="verdict">
+    <span class="big" id="verdictBig">—</span>
+    <span class="sub" id="verdictSub"></span>
+    <div><button class="again" id="againBtn">Play again</button></div>
+  </div>
 </div>
 
 <script>
@@ -200,15 +303,31 @@ for (let r = 0; r < SIZE; r++){
 }
 
 // Default the server box to same host (handy once deployed behind same domain)
-$('serverInput').value = 'wss://gomoku-drl2.onrender.com';
+(function guessServer(){
+  const saved = localStorage ? null : null; // localStorage unavailable in some sandboxes; skip
+  if (location.protocol === 'https:' && location.host && !location.host.includes('github'))
+    $('serverInput').value = 'wss://' + location.host;
+})();
 
 $('joinBtn').addEventListener('click', join);
 $('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') join(); });
-$('resetBtn').addEventListener('click', () => send({type:'reset'}));
+$('nameInput').addEventListener('input', () => $('nameInput').classList.remove('invalid'));
+$('againBtn').addEventListener('click', () => { hideOverlay(); send({type:'reset'}); });
 
 function join(){
-  const name = $('nameInput').value.trim() || 'Player';
+  const nameEl = $('nameInput');
+  const name = nameEl.value.trim();
   let addr = $('serverInput').value.trim();
+
+  // Name is required — refuse and shake the field if empty.
+  if (!name){
+    nameEl.classList.remove('invalid');
+    void nameEl.offsetWidth;          // restart the animation
+    nameEl.classList.add('invalid');
+    nameEl.focus();
+    toast('joinToast', 'Please enter your name to play.');
+    return;
+  }
   if (!addr){ toast('joinToast', 'Enter the server address.'); return; }
   if (!/^wss?:\/\//.test(addr)) addr = (location.protocol === 'https:' ? 'wss://' : 'ws://') + addr;
 
@@ -255,7 +374,9 @@ function handle(msg){
       gameOver = true;
       boardEl.classList.add('locked');
       $('result').textContent = 'Opponent left';
-      toast('gameToast', 'Your opponent disconnected.');
+      $('turnBanner').className = 'turn-banner';
+      $('turnBanner').innerHTML = '<span class="label">Your opponent disconnected</span>';
+      toast('gameToast', 'Your opponent left the game.');
       break;
     case 'error':
       toast('gameToast', msg.message);
@@ -267,7 +388,7 @@ function startGame(msg){
   if (msg.color) myColor = msg.color;
   joinPanel.classList.add('hidden');
   gameView.classList.remove('hidden');
-  $('resetBtn').classList.add('hidden');
+  hideOverlay();
   gameOver = false;
   boardEl.classList.remove('locked');
 
@@ -285,7 +406,6 @@ function startGame(msg){
   myTurn = (msg.turn === myColor);
   updateTurnUI(msg.turn);
   $('result').textContent = '';
-  toast('gameToast', myTurn ? "Your move." : "Opponent's move.");
 }
 
 function placeStone(r, c, color){
@@ -300,8 +420,18 @@ function placeStone(r, c, color){
 function updateTurnUI(turn){
   $('pillBlack').classList.toggle('active', turn === 'black');
   $('pillWhite').classList.toggle('active', turn === 'white');
-  if (!gameOver && turn)
-    toast('gameToast', myTurn ? 'Your move.' : "Opponent's move.");
+  if (gameOver || !turn) return;
+
+  const banner = $('turnBanner');
+  const mine = (turn === myColor);
+  banner.className = 'turn-banner ' + (mine ? 'mine' : 'theirs');
+  const oppName = (turn === 'black' ? $('nameBlack').textContent : $('nameWhite').textContent);
+  banner.innerHTML = mine
+    ? '<span class="label">✦ Your move ✦</span>'
+    : `<span class="label">${escapeHtml(oppName)} is thinking<span class="dots"></span></span>`;
+  // retrigger the swap animation
+  void banner.offsetWidth;
+  banner.classList.add('swap');
 }
 
 function endGame(msg){
@@ -310,24 +440,71 @@ function endGame(msg){
   boardEl.classList.add('locked');
   $('pillBlack').classList.remove('active');
   $('pillWhite').classList.remove('active');
+  $('turnBanner').className = 'turn-banner';
+  $('turnBanner').innerHTML = '<span class="label">Game over</span>';
+
+  const verdict = $('verdict'), big = $('verdictBig'), sub = $('verdictSub');
 
   if (msg.result === 'draw'){
     $('result').textContent = 'Draw';
-    toast('gameToast', 'The board is full — a draw.');
+    verdict.className = 'verdict draw';
+    big.textContent = 'Draw';
+    sub.textContent = 'The board is full';
   } else {
     (msg.line || []).forEach(([r,c]) => {
       const s = cells[r][c].querySelector('.stone');
       if (s) s.classList.add('win');
     });
     const won = (msg.winner === myColor);
-    $('result').textContent = won ? 'You win' : 'You lose';
     const wname = msg.winner === 'black' ? $('nameBlack').textContent : $('nameWhite').textContent;
-    toast('gameToast', `${wname} connected five.`);
+    $('result').textContent = won ? 'You win' : 'You lose';
+    if (won){
+      verdict.className = 'verdict win';
+      big.textContent = 'You Win!';
+      sub.textContent = 'Five in a row';
+      launchConfetti();
+    } else {
+      verdict.className = 'verdict lose';
+      big.textContent = 'You Lose';
+      sub.textContent = `${wname} connected five`;
+    }
   }
-  $('resetBtn').classList.remove('hidden');
+  showOverlay();
 }
 
-let toastTimer;
+function showOverlay(){
+  const o = $('overlay');
+  o.classList.remove('hidden');
+  // allow layout to settle so the transition plays
+  requestAnimationFrame(() => o.classList.add('show'));
+}
+function hideOverlay(){
+  $('overlay').classList.remove('show');
+}
+
+function launchConfetti(){
+  const colors = ['#c89b3c','#f4e3a0','#a8321f','#e8dcc0','#d8b878'];
+  const N = 90;
+  for (let i = 0; i < N; i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[(Math.random() * colors.length) | 0];
+    piece.style.setProperty('--dur', (2 + Math.random() * 2.2) + 's');
+    piece.style.transform = `rotate(${Math.random()*360}deg)`;
+    if (Math.random() < 0.5) piece.style.borderRadius = '50%';
+    document.body.appendChild(piece);
+    // stagger the start a touch
+    setTimeout(() => piece.classList.add('go'), Math.random() * 400);
+    setTimeout(() => piece.remove(), 5000);
+  }
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
 function toast(id, text){
   const el = $(id);
   el.textContent = text;
