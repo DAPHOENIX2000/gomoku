@@ -306,7 +306,7 @@ for (let r = 0; r < SIZE; r++){
 (function guessServer(){
   const saved = localStorage ? null : null; // localStorage unavailable in some sandboxes; skip
   if (location.protocol === 'https:' && location.host && !location.host.includes('github'))
-    $('serverInput').value = 'wss://' + location.host;
+    $('serverInput').value = 'wss://gomoku-drl2.onrender.com';
 })();
 
 $('joinBtn').addEventListener('click', join);
